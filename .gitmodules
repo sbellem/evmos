@@ -10,3 +10,12 @@
 	path = third_party/tfhe-rs
 	url = https://github.com/zama-ai/tfhe-rs.git
 	branch = release/0.3.x
+[submodule "fhevm-tfhe-cli"]
+	path = third_party/fhevm-tfhe-cli
+	url = https://github.com/zama-ai/fhevm-tfhe-cli.git
+[submodule "fhevm-solidity"]
+	path = third_party/fhevm-solidity
+	url = https://github.com/zama-ai/fhevm-solidity.git
+[submodule "fhevm-requires-db"]
+	path = third_party/fhevm-requires-db
+	url = https://github.com/zama-ai/fhevm-requires-db.git
