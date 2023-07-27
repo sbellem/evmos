@@ -18,4 +18,3 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 COPY --from=rust:1.71.0-bullseye /usr/local/rustup ${RUSTUP_HOME}
 COPY --from=rust:1.71.0-bullseye /usr/local/cargo ${CARGO_HOME}
-

@@ -1,38 +1,66 @@
-FROM ghcr.io/zama-ai/zama-zbc-build:latest AS build-env
+FROM golang:bullseye as zama-zbc-build
+
+RUN apt-get update && apt-get install -y \
+                build-essential \
+                git \
+                jq \
+                libc6 \
+        && rm -rf /var/lib/apt/lists/*
+
+#RUN curl https://sh.rustup.rs -sSf | \
+#    sh -s -- --default-toolchain stable -y
+
+#ENV PATH=/root/.cargo/bin:$PATH
+
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+COPY --from=rust:1.71.0-bullseye /usr/local/rustup ${RUSTUP_HOME}
+COPY --from=rust:1.71.0-bullseye /usr/local/cargo ${CARGO_HOME}
+
+
+#FROM ghcr.io/zama-ai/zama-zbc-build:latest AS build-env
+FROM zama-zbc-build AS evmos
 
 ENV LD_LIBRARY_PATH=/usr/lib/tfhe
-ADD . /src/evmos
 
 WORKDIR /src/evmos
+COPY . .
 
-RUN mkdir -p /usr/include
+#RUN mkdir -p /usr/include
 
-RUN cp go.mod.updated /src/evmos/go.mod
+#RUN cp go.mod.updated /src/evmos/go.mod
+#RUN cp go.mod /src/evmos/go.mod
 
-RUN tail /src/evmos/go.mod
+#RUN tail /src/evmos/go.mod
 
-RUN make build
-RUN ls /src/evmos
-RUN ls /src/evmos/build
-RUN mkdir -p /src/evmos/build
+ARG WORKDIR=third_party
+RUN WORKDIR=${WORKDIR} make build
 
-FROM ghcr.io/zama-ai/zama-zbc-build:latest
+#RUN ls /src/evmos
+#RUN ls /src/evmos/build
+#RUN mkdir -p /src/evmos/build
 
-RUN apt-get update -y
-RUN apt-get install ca-certificates jq -y
+#FROM ghcr.io/zama-ai/zama-zbc-build:latest
+FROM zama-zbc-build
+
+RUN apt-get update && apt-get install -y \
+                ca-certificates \
+                jq \
+        && rm -rf /var/lib/apt/lists/*
+
 ENV LD_LIBRARY_PATH=/usr/lib
 
-
-COPY --from=build-env /src/evmos/build/evmosd /usr/bin/evmosd
-COPY --from=build-env /usr/lib/libtfhe.* /usr/lib/
-COPY --from=build-env /usr/include/tfhe.h /usr/include
+COPY --from=evmos /src/evmos/build/evmosd /usr/bin/evmosd
+COPY --from=evmos /usr/lib/libtfhe.* /usr/lib/
+COPY --from=evmos /usr/include/tfhe.h /usr/include
 
 WORKDIR /config
-ADD setup.sh .
-RUN chmod +x /config/setup.sh
-ADD zama_config.toml .
-RUN mkdir -p /root/.evmosd/zama
-RUN touch /root/.evmosd/zama/vm.log
+COPY setup.sh zama_config.toml .
+#RUN chmod +x /config/setup.sh
+#COPY zama_config.toml .
+RUN mkdir -p /root/.evmosd/zama && touch /root/.evmosd/zama/vm.log
 
 EXPOSE 26656 26657 1317 9090 8545 8546
 
