@@ -191,6 +191,10 @@ $(BUILD_TARGETS): go.sum build_c_api_tfhe $(BUILDDIR)/
 	$(info BUILD_TARGETS)
 	go $@ $(BUILD_FLAGS) -o build $(BUILD_ARGS) ./...
 
+build-evmos: go.sum $(BUILDDIR)/
+	$(info BUILD_TARGETS)
+	go build $(BUILD_FLAGS) -o build $(BUILD_ARGS) ./...
+
 check-tfhe-rs: $(WORKDIR)/
 	$(info check-tfhe-rs)
 ifeq ($(TFHE_RS_EXISTS), true)
