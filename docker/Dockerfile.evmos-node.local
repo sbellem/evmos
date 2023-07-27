@@ -7,11 +7,6 @@ RUN apt-get update && apt-get install -y \
                 libc6 \
         && rm -rf /var/lib/apt/lists/*
 
-#RUN curl https://sh.rustup.rs -sSf | \
-#    sh -s -- --default-toolchain stable -y
-
-#ENV PATH=/root/.cargo/bin:$PATH
-
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH
@@ -20,29 +15,64 @@ COPY --from=rust:1.71.0-bullseye /usr/local/rustup ${RUSTUP_HOME}
 COPY --from=rust:1.71.0-bullseye /usr/local/cargo ${CARGO_HOME}
 
 
-#FROM ghcr.io/zama-ai/zama-zbc-build:latest AS build-env
+##############################################################################
+#                                                                            #
+#                               tfhe-rs                                      #
+#                                                                            #
+##############################################################################
+FROM rust:1.71.0-bullseye AS tfhe
+
+ENV LD_LIBRARY_PATH=/usr/lib/tfhe
+ENV WORKDIR third_party
+
+WORKDIR /src/evmos/third_party/tfhe-rs
+COPY third_party/tfhe-rs .
+
+RUN --mount=type=cache,target=${CARGO_HOME}/registry \
+    make build_c_api_experimental_deterministic_fft \
+        && cp target/release/tfhe.h /usr/include/ \
+	    && cp target/release/libtfhe.* /usr/lib/
+
+
+##############################################################################
+#                                                                            #
+#                                   evmos                                    #
+#                                                                            #
+##############################################################################
+
+# TODO: can a golang image be enough?
 FROM zama-zbc-build AS evmos
 
 ENV LD_LIBRARY_PATH=/usr/lib/tfhe
 
+COPY --from=tfhe /usr/include/tfhe.h /usr/include/
+COPY --from=tfhe /usr/lib/libtfhe.* /usr/lib/
+
+WORKDIR /src/evmos/third_party
+COPY third_party/ethermint ethermint
+COPY third_party/go-ethereum go-ethereum
+COPY third_party/proto proto
+
 WORKDIR /src/evmos
-COPY . .
+COPY .env Makefile go.mod go.sum .
 
-#RUN mkdir -p /usr/include
+COPY app app
+COPY cmd cmd
+COPY client client
+COPY contracts contracts
+COPY crypto crypto
+COPY ibc ibc
+COPY proto proto
+COPY testutil testutil
+COPY types types
+COPY version version
+COPY x x
 
-#RUN cp go.mod.updated /src/evmos/go.mod
-#RUN cp go.mod /src/evmos/go.mod
+RUN --mount=type=cache,target=/root/.cache/go-build \
+        WORKDIR=third_party make build-evmos
 
-#RUN tail /src/evmos/go.mod
 
-ARG WORKDIR=third_party
-RUN WORKDIR=${WORKDIR} make build
-
-#RUN ls /src/evmos
-#RUN ls /src/evmos/build
-#RUN mkdir -p /src/evmos/build
-
-#FROM ghcr.io/zama-ai/zama-zbc-build:latest
+# TODO can we use a more minimalistic image?
 FROM zama-zbc-build
 
 RUN apt-get update && apt-get install -y \
@@ -58,8 +88,6 @@ COPY --from=evmos /usr/include/tfhe.h /usr/include
 
 WORKDIR /config
 COPY setup.sh zama_config.toml .
-#RUN chmod +x /config/setup.sh
-#COPY zama_config.toml .
 RUN mkdir -p /root/.evmosd/zama && touch /root/.evmosd/zama/vm.log
 
 EXPOSE 26656 26657 1317 9090 8545 8546
