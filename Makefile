@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-include .env
+#include .env
 
 PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
@@ -32,6 +32,7 @@ DOCKER_TAG := $(COMMIT_HASH)
 WORKDIR ?= $(CURDIR)/work_dir
 # Needed as long as go-ethereum and ethermint are private repositories
 GOPRIVATE = github.com/zama-ai/*
+LOCAL_BUILD ?= true
 
 TFHE_RS_PATH ?= $(WORKDIR)/tfhe-rs
 TFHE_RS_EXISTS := $(shell test -d $(TFHE_RS_PATH)/.git && echo "true" || echo "false")
