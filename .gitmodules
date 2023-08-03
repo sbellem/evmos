@@ -20,3 +20,4 @@
 	path = third_party/go-ethereum
 	url = https://github.com/zama-ai/go-ethereum.git
 	branch = 1.10.19-zama
+	shallow = true
