@@ -13,9 +13,10 @@
 [submodule "fhevm-tfhe-cli"]
 	path = third_party/fhevm-tfhe-cli
 	url = https://github.com/zama-ai/fhevm-tfhe-cli.git
-[submodule "fhevm-solidity"]
-	path = third_party/fhevm-solidity
-	url = https://github.com/zama-ai/fhevm-solidity.git
 [submodule "fhevm-requires-db"]
 	path = third_party/fhevm-requires-db
 	url = https://github.com/zama-ai/fhevm-requires-db.git
+[submodule "fhevm-solidity"]
+	path = third_party/fhevm-solidity
+	url = https://github.com/sbellem/fhevm-solidity.git
+	branch = dev
