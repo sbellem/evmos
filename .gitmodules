@@ -1,7 +1,3 @@
-[submodule "go-ethereum"]
-	path = third_party/go-ethereum
-	url = https://github.com/zama-ai/go-ethereum.git
-	branch = 1.10.19-zama
 [submodule "ethermint"]
 	path = third_party/ethermint
 	url = https://github.com/zama-ai/ethermint.git
@@ -20,3 +16,7 @@
 	path = third_party/fhevm-solidity
 	url = https://github.com/sbellem/fhevm-solidity.git
 	branch = dev
+[submodule "go-ethereum"]
+	path = third_party/go-ethereum
+	url = https://github.com/zama-ai/go-ethereum.git
+	branch = 1.10.19-zama
